@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="sq">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aluforma Plast ERP v21 - Engineering Edition</title>
+    <style>
+        :root { --p: #0f172a; --a: #2563eb; --ok: #10b981; --warn: #f59e0b; --danger: #ef4444; --bg: #f1f5f9; }
+        body { font-family: 'Inter', sans-serif; margin: 0; background: var(--bg); color: var(--p); }
+        header { background: var(--p); color: white; padding: 15px 25px; display: flex; justify-content: space-between; align-items: center; }
+        .brand { font-size: 22px; font-weight: 900; } .brand span { color: var(--a); }
+        nav { background: white; display: flex; overflow-x: auto; border-bottom: 1px solid #e2e8f0; position: sticky; top: 0; z-index: 1000; }
+        nav span { padding: 16px 22px; color: #64748b; cursor: pointer; font-weight: 600; font-size: 13px; white-space: nowrap; transition: 0.2s; }
+        nav span.active { color: var(--a); border-bottom: 3px solid var(--a); background: #f8faff; }
+        .container { padding: 20px; max-width: 1200px; margin: auto; }
+        .page { display: none; } .active-page { display: block; animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .card { background: white; padding: 20px; border-radius: 12px; margin-bottom: 20px; border: 1px solid #e2e8f0; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px; }
+        input, select, textarea { padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; width: 100%; margin-bottom: 10px; font-size: 14px; }
+        .btn { padding: 10px 18px; border: none; border-radius: 8px; cursor: pointer; font-weight: 700; }
+        .btn-blue { background: var(--a); color: white; }
+        .btn-ok { background: var(--ok); color: white; }
+        .btn-danger { background: #fee2e2; color: var(--danger); font-size: 12px; border:none; padding: 5px 10px; border-radius: 5px; cursor: pointer; }
+        .tag { background: #f1f5f9; padding: 4px 10px; border-radius: 15px; font-size: 11px; font-weight: bold; border: 1px solid #e2e8f0; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th { background: #f8fafc; padding: 12px; text-align: left; font-size: 12px; color: #64748b; border-bottom: 1px solid #eee; }
+        td { padding: 12px; border-bottom: 1px solid #f1f5f9; font-size: 13px; }
+        .stat-card { padding: 25px; border-radius: 15px; text-align: center; color: white; font-weight: bold; }
+        .stat-card span { display: block; font-size: 32px; margin-top: 5px; }
+        
+        .filter-btn-group { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 15px; }
+        .btn-light { background: #e2e8f0; color: #475569; padding: 10px 20px; border-radius: 8px; font-size: 13px; border:none; cursor:pointer; }
+        .print-btn { background: none; border: none; color: #1e293b; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 5px; }
+              .urgent-blink {
+            animation: pulse-red 2s infinite;
+            border: 2px solid var(--danger) !important;
+        }
+        @keyframes pulse-red {
+            0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+        }
+@media print {
+
+    body * {
+        visibility: hidden !important;
+    }
+
+    #print-area,
+    #print-area * {
+        visibility: visible !important;
+    }
+
+    #print-area {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        background: white;
+        padding: 20px;
+    }
+
+    nav,
+    button,
+    .no-print {
+        display: none !important;
+    }
+}
+        /* Stilimi per Printimin e Matjeve */
+        /* Stilimi i ri për Raportin PDF Profesional */
+#print-header, #print-footer { display: none; }
+
+  <style>
+    :root { --p: #0f172a; --a: #2563eb; --ok: #10b981; --warn: #f59e0b; --danger: #ef4444; --bg: #f1f5f9; }
+    body { font-family: 'Inter', sans-serif; margin: 0; background: var(--bg); color: var(--p); }
+    header { background: var(--p); color: white; padding: 15px 25px; display: flex; justify-content: space-between; align-items: center; }
+    .brand { font-size: 22px; font-weight: 900; } .brand span { color: var(--a); }
+    nav { background: white; display: flex; overflow-x: auto; border-bottom: 1px solid #e2e8f0; position: sticky; top: 0; z-index: 1000; }
+    nav span { padding: 16px 22px; color: #64748b; cursor: pointer; font-weight: 600; font-size: 13px; white-space: nowrap; transition: 0.2s; }
+    nav span.active { color: var(--a); border-bottom: 3px solid var(--a); background: #f8faff; }
+    .container { padding: 20px; max-width: 1200px; margin: auto; }
+    .page { display: none; } .active-page { display: block; animation: fadeIn 0.3s ease; }
+    .card { background: white; padding: 20px; border-radius: 12px; margin-bottom: 20px; border: 1px solid #e2e8f0; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px; }
+    input, select, textarea { padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; width: 100%; margin-bottom: 10px; }
+    .btn { padding: 10px 18px; border: none; border-radius: 8px; cursor: pointer; font-weight: 700; }
+    .btn-blue { background: var(--a); color: white; }
+    .btn-ok { background: var(--ok); color: white; }
+    .tag { background: #f1f5f9; padding: 4px 10px; border-radius: 15px; font-size: 11px; font-weight: bold; border: 1px solid #e2e8f0; }
+    table { width: 100%; border-collapse: collapse; }
+    th { background: #f8fafc; padding: 12px; text-align: left; font-size: 12px; color: #64748b; }
+    td { padding: 12px; border-bottom: 1px solid #f1f5f9; font-size: 13px; }
+
+    /* STILIMI I RI PËR PRINTIMIN PROFESIONAL */
+    @media print {
+        body * { visibility: hidden !important; }
+        #print-area, #print-area * { visibility: visible !important; }
+        #print-area {
+            position: absolute; left: 0; top: 0; width: 100%;
+            background: white; padding: 0; font-family: 'Segoe UI', sans-serif;
+        }
+        .pdf-header {
+            background: #0f172a !important; color: white !important; padding: 30px;
+            display: flex; justify-content: space-between; align-items: center;
+            -webkit-print-color-adjust: exact;
+        }
+        .pdf-body { padding: 30px; }
+        .pdf-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        .pdf-table th { background: #f1f5f9 !important; padding: 12px; border-bottom: 2px solid #cbd5e1; -webkit-print-color-adjust: exact; }
+        .pdf-table td { padding: 12px; border-bottom: 1px solid #e2e8f0; }
+        .status-badge { padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 10px; -webkit-print-color-adjust: exact; }
+    }
+</style>
+</head>
+<body>
+ <div id="print-header">
+    <div class="logo-text">ALUFORMA <span>PLAST</span></div>
+    <div style="text-align: right; font-size: 12px;">
+        <h2 style="margin:0; color:#2563eb;">RAPORTI I PRODHIMIT</h2>
+        <p style="margin:2px 0;">Data: <span id="pdf-date"></span></p>
+    </div>
+</div>
+
+<div id="print-footer">
+    <div class="footer-name">Ing. Pëllumb Alla</div>
+    <div class="footer-role">
+        Engineering & Production Management Report
+    </div>
+</div>
+
+<header>
+    <div class="brand">ALUFORMA <span>PLAST</span></div>
+    <div id="live-clock" style="font-size: 13px;"></div>
+</header>
+
+<nav class="no-print">
+    <span onclick="goTo('p1')" id="n1" class="active">📊 MONITORIMI</span>
+    <span onclick="goTo('p6')" id="n6">📏 MATJET</span>
+    <span onclick="goTo('p2')" id="n2">📝 PLANIFIKIMI</span>
+    <span onclick="goTo('p4')" id="n4">🛠️ PRODHIMI</span>
+    <span onclick="goTo('p5')" id="n5">📂 ARKIVA</span>
+    <span onclick="goTo('p3')" id="n3">⚙️ RESURSET</span>
+</nav>
+
+<div class="container">
+    
+    <div id="p1" class="page active-page">
+        <div class="grid" id="monitor-grid"></div>
+    </div>
+
+    <div id="p6" class="page">
+        <div class="card no-print" style="border-top: 4px solid var(--warn);">
+            <h3>📐 Regjistrimi i Matjeve Teknike</h3>
+            <div class="grid">
+                <input type="text" id="m_objekti" list="obj-list" placeholder="Klienti / Objekti">
+                <datalist id="obj-list"></datalist>
+                <select id="m_el_sel"></select>
+                <div style="display:flex; gap:10px; align-items:center;">
+                    <input type="number" id="m_gjeresi" placeholder="Gjerësi (W)">
+                    <span style="font-weight:bold;">X</span>
+                    <input type="number" id="m_lartesi" placeholder="Lartësi (H)">
+                    <select id="m_uni_sel" style="width:100px;"></select>
+                </div>
+                <input type="text" id="m_ral" placeholder="Kodi i Ngjyrës (RAL)">
+                <input type="text" id="m_seria" placeholder="Seria e Profilit">
+                <input type="number" id="m_sasia" placeholder="Sasia (Copa)" value="1">
+            </div>
+            <textarea id="m_shenime" placeholder="Specifikime (xhami, hapja, etj)..."></textarea>
+            <button class="btn" onclick="saveMatje()" style="width:100%; padding:15px; background:var(--warn); color:var(--p);">+ SHTO NË LISTËN E MATJEVE</button>
+        </div>
+        <div id="matjet-container" class="grid"></div>
+    </div>
+
+    <div id="p2" class="page">
+        <div class="card">
+            <h3>Hap Projekt i Ri</h3>
+            <div class="grid">
+    <input type="text" id="p_name" placeholder="Emri i Projektit">
+    <div style="display:flex; gap:10px;">
+        <div style="width:100%">
+            <label style="font-size:11px; color:#64748b; font-weight:bold;">🚀 DATA E NISJES</label>
+            <input type="date" id="p_start_date">
+        </div>
+        <div style="width:100%">
+            <label style="font-size:11px; color:#64748b; font-weight:bold;">🏁 AFATI PËRFUNDIMTAR</label>
+            <input type="date" id="p_dl_date">
+        </div>
+    </div>
+</div>
+
+<script>
+    // Kjo linjë bën që data e nisjes të jetë automatikisht sot
+    document.getElementById('p_start_date').value = new Date().toISOString().split('T')[0];
+</script>
+
+            <div class="card" style="background:#f8fafc;">
+                <b>Makineritë:</b>
+                <div id="mc-checklist" style="display:flex; flex-wrap:wrap; gap:8px; margin-top:10px;"></div>
+            </div>
+            <div id="items-box"></div>
+            <button class="btn btn-blue" onclick="addItemRow()" style="background:#64748b;">+ Shto Element</button>
+            <button class="btn btn-ok" onclick="saveNewProject()" style="width:100%; margin-top:15px; padding:15px;">DËRGO NË FABRIKË 🚀</button>
+        </div>
+    </div>
+
+    <div id="p4" class="page">
+        <div class="card" style="border: 2px solid var(--a);">
+            <h3>Skanimi i Punës</h3>
+            <div class="grid">
+                <select id="pr_sel" onchange="updateProdOptions()"></select>
+                <select id="el_sel"></select>
+                <input type="text" id="prod_barcode" placeholder="Barkodi">
+                <input type="text" id="wk_in" placeholder="Punonjësi">
+            </div>
+            <button class="btn btn-blue" style="width:100%; margin-top:10px;" onclick="logWork()">REGJISTRO</button>
+        </div>
+    </div>
+
+    <div id="p5" class="page">
+        <div class="grid" style="margin-bottom:20px; grid-template-columns: repeat(3, 1fr);">
+            <div class="stat-card" style="background:#2563eb;">Prodhimi <span id="st_prod">0</span></div>
+            <div class="stat-card" style="background:#10b981;">Mbyllur <span id="st_mbyll">0</span></div>
+            <div class="stat-card" style="background:#1e293b;">Veprime <span id="st_tot">0</span></div>
+        </div>
+
+        <div class="card no-print">
+            <h4 style="margin-top:0;">📂 Arkiva dhe Raportet</h4>
+            <div class="grid">
+                <div>
+                    <label style="font-size:12px; font-weight:600; color:#64748b;">Kërko Klientin</label>
+                    <input type="text" id="f_search" placeholder="Emri..." oninput="renderArchive()">
+                </div>
+                <div>
+                    <label style="font-size:12px; font-weight:600; color:#64748b;">Statusi</label>
+                    <select id="f_type" onchange="renderArchive()">
+    <option value="">Të Gjitha</option>
+    <option value="PRODHIM">Në Prodhim</option>
+    <option value="MBYLLJE">Të Mbyllura</option>
+    <option value="MATJE">Matjet Teknike 📐</option>
+    <option value="SHTYRJE">Shtyrjet e Afatit</option>
+</select>
+                </div>
+                <div>
+                    <label style="font-size:12px; font-weight:600; color:#64748b;">Nga Data</label>
+                    <input type="date" id="f_start" onchange="renderArchive()">
+                </div>
+                <div>
+                    <label style="font-size:12px; font-weight:600; color:#64748b;">Deri më</label>
+                    <input type="date" id="f_end" onchange="renderArchive()">
+                </div>
+            </div>
+
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px;">
+                <button class="btn btn-blue" onclick="clearFilters()" style="padding:12px 30px;">PASTRO FILTRAT</button>
+                <button class="btn-ok" onclick="printProfessionalPDF()" style="background:#0f172a; padding:12px 25px;">SHKARKO RAPORTIN PDF (Konfirmo) 📥</button>
+            </div>
+
+            <div class="filter-btn-group">
+                <button class="btn-light" onclick="filterByTime('today')">Sot</button>
+                <button class="btn-light" onclick="filterByTime('week')">Këtë Javë</button>
+                <button class="btn-light" onclick="filterByTime('month')">Këtë Muaj</button>
+                <button class="btn-light" onclick="filterByTime('year')">Viti 2026</button>
+            </div>
+        </div>
+
+        <div class="card" style="padding:0; overflow-x:auto;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Data</th>
+                        <th>Klienti</th>
+                        <th>Punonjësi</th>
+                        <th>Artikuj/Info</th>
+                        <th>Statusi</th>
+                        <th class="no-print">Aksion</th>
+                    </tr>
+                </thead>
+                <tbody id="arc_body"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <div id="p3" class="page">
+        <div class="grid">
+            <div class="card">
+                <h3>Makineritë</h3>
+                <div style="display:flex; gap:5px;"><input id="new_m" placeholder="Emri makinës"><button class="btn btn-blue" onclick="addR('machines','new_m')">+</button></div>
+                <div id="list_machines" style="margin-top:10px; display:flex; flex-wrap:wrap; gap:5px;"></div>
+            </div>
+            <div class="card">
+                <h3>Elementët</h3>
+                <div style="display:flex; gap:5px;"><input id="new_e" placeholder="Lloji produktit"><button class="btn btn-blue" onclick="addR('elements','new_e')">+</button></div>
+                <div id="list_elements" style="margin-top:10px; display:flex; flex-wrap:wrap; gap:5px;"></div>
+            </div>
+            <div class="card">
+                <h3>Njësitë</h3>
+                <div style="display:flex; gap:5px;"><input id="new_u" placeholder="Njësia matëse"><button class="btn btn-blue" onclick="addR('units','new_u')">+</button></div>
+                <div id="list_units" style="margin-top:10px; display:flex; flex-wrap:wrap; gap:5px;"></div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    let db = JSON.parse(localStorage.getItem('alu_erp_v21')) || { 
+        projs: [], archive: [], matjet: {}, 
+        machines: ["SBZ 610", "Saldatrice", "Prerëse"], 
+        elements: ["Dritare", "Derë", "Persiane"],
+        units: ["mm", "cm", "m"]
+    };
+
+    function save() { localStorage.setItem('alu_erp_v21', JSON.stringify(db)); }
+
+    function syncResources() {
+        document.getElementById('m_el_sel').innerHTML = db.elements.map(e => `<option>${e}</option>`).join('');
+        document.getElementById('m_uni_sel').innerHTML = db.units.map(u => `<option>${u}</option>`).join('');
+        document.getElementById('mc-checklist').innerHTML = db.machines.map(m => `<label class="tag"><input type="checkbox" class="mc-m" value="${m}"> ${m}</label>`).join('');
+        document.getElementById('pr_sel').innerHTML = db.projs.map((p, i) => `<option value="${i}">${p.name}</option>`).join('');
+        document.getElementById('obj-list').innerHTML = Object.keys(db.matjet).map(o => `<option value="${o}">`).join('');
+    }
+
+    function goTo(id) {
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active-page'));
+        document.querySelectorAll('nav span').forEach(s => s.classList.remove('active'));
+        document.getElementById(id).classList.add('active-page');
+        const nId = (id === 'p6') ? 'n6' : 'n' + id.slice(-1);
+        if(document.getElementById(nId)) document.getElementById(nId).classList.add('active');
+        
+        syncResources();
+        if(id==='p1') renderMonitor();
+        if(id==='p6') renderMatjet();
+        if(id==='p3') renderRes();
+        if(id==='p4') updateProdOptions();
+        if(id==='p5') renderArchive();
+    }
+
+    // --- MATJET (ME LOGJIKE BASHKIMI DHE PRINTIMI) ---
+    function saveMatje() {
+        const obj = document.getElementById('m_objekti').value.trim();
+        const gj = document.getElementById('m_gjeresi').value;
+        const la = document.getElementById('m_lartesi').value;
+        if(!obj || !gj || !la) return alert("Plotësoni Objektin dhe Dimensionet!");
+        
+        if(!db.matjet[obj]) db.matjet[obj] = [];
+        
+        db.matjet[obj].push({ 
+            tipi: document.getElementById('m_el_sel').value, 
+            dimenzion: `${gj} x ${la}`, 
+            unit: document.getElementById('m_uni_sel').value,
+            ral: document.getElementById('m_ral').value || "Standard", 
+            seria: document.getElementById('m_seria').value || "-",
+            sasia: document.getElementById('m_sasia').value, 
+            shenime: document.getElementById('m_shenime').value, 
+            data: new Date().toISOString()
+        });
+        
+        save(); 
+        // Pastro fushat pas shtimit
+        document.getElementById('m_gjeresi').value = "";
+        document.getElementById('m_lartesi').value = "";
+        document.getElementById('m_shenime').value = "";
+        renderMatjet();
+    }
+
+    function renderMatjet() {
+        document.getElementById('matjet-container').innerHTML = Object.keys(db.matjet).map(obj => `
+            <div class="card matje-card" id="matje-${obj.replace(/\s+/g, '-')}" style="border-left: 5px solid var(--warn);">
+                <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+                    <b style="font-size:18px;">🏢 ${obj}</b>
+                    <div class="no-print" style="display:flex; gap:5px;">
+                        <button class="btn-ok" onclick="dergoMatjeNeArkive('${obj}')" style="background:var(--ok); font-size:11px; color:white; border:none; padding:5px; border-radius:4px; cursor:pointer;">Dergo ne Arkive 📂</button>
+<button class="btn-light" onclick="printSingleMatje('${obj}')" style="font-size:11px; cursor:pointer;">Printo PDF 📄</button>
+<button class="btn-danger" onclick="deleteObjMatje('${obj}')">Fshij</button>
+                    </div>
+                </div>
+                <table style="margin-bottom:10px;">
+                    <thead>
+                        <tr>
+                            <th>Lloji</th>
+                            <th>Përmasa</th>
+                            <th>Sasia</th>
+                            <th>RAL / Seria</th>
+                            <th>Shënime</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${db.matjet[obj].map(m => `
+                            <tr>
+                                <td><b>${m.tipi}</b></td>
+                                <td>${m.dimenzion} ${m.unit}</td>
+                                <td>${m.sasia} copë</td>
+                                <td>${m.ral} / ${m.seria}</td>
+                                <td style="font-size:11px;">${m.shenime}</td>
+                            </tr>`).join('')}
+                    </tbody>
+                </table>
+                <button class="btn-blue no-print" style="width:100%; font-size:11px;" onclick="konvertoNeProj('${obj}')">KALO NË PLANIFIKIM 🚀</button>
+            </div>`).join('');
+    }
+    function dergoMatjeNeArkive(obj) {
+        if (!db.matjet[obj] || db.matjet[obj].length === 0) return;
+        const permbledhje = db.matjet[obj].map(m => `${m.sasia}x ${m.tipi} (${m.dimenzion})`).join(", ");
+        db.archive.push({ 
+            type: 'MATJE', 
+            date: new Date().toISOString(), 
+            info: obj, 
+            content: `Matje Teknike: ${permbledhje}`, 
+            worker: 'Inxhinieri' 
+        });
+        delete db.matjet[obj];
+        save();
+        renderMatjet();
+        alert("Matjet u arkivuan me sukses!");
+    }
+
+    function printSingleMatje(objId) {
+        // Fshehim te gjitha kartelat e tjera perkohesisht per printim
+        const cards = document.querySelectorAll('.matje-card');
+        cards.forEach(c => {
+            if(c.id !== `matje-${objId.replace(/\s+/g, '-')}`) {
+                c.classList.add('non-printable-area');
+            } else {
+                c.classList.add('printable-area');
+            }
+        });
+        window.print();
+        // Rikthejme pamjen
+        cards.forEach(c => {
+            c.classList.remove('non-printable-area');
+            c.classList.remove('printable-area');
+        });
+    }
+
+    function deleteObjMatje(obj) { if(confirm("Fshij të gjitha matjet për këtë objekt?")) { delete db.matjet[obj]; save(); renderMatjet(); } }
+    function konvertoNeProj(obj) { document.getElementById('p_name').value = obj; goTo('p2'); }
+
+        // --- MONITORIMI DHE PLANIFIKIMI (VERSIONI I PLOTË) ---
+    function renderMonitor() {
+        document.getElementById('monitor-grid').innerHTML = db.projs.map((p, i) => {
+            const perc = Math.round((p.doneQty / p.totalQty) * 100) || 0;
+            const sot = new Date();
+            const afati = new Date(p.deadline);
+            const diff = Math.ceil((afati - sot) / (1000 * 60 * 60 * 24));
+            
+            let statusColor = "var(--a)"; // Blu (Fillimi)
+            let cardBg = "white";
+            
+            if (perc > 0 && perc < 100) statusColor = "var(--warn)"; // Portokalli (Prodhim)
+            if (diff <= 5 && perc < 100) { statusColor = "var(--danger)"; cardBg = "#fff5f5"; } // Kuqe (5 ditet e fundit)
+            
+            if (perc >= 100) {
+                statusColor = "var(--ok)"; // Jeshil (Mbaruar)
+                setTimeout(() => { autoArchiveProject(i, "Përfunduar 100%"); }, 1500);
+            }
+
+            const machineTags = p.machines && p.machines.length > 0 
+                ? `<div style="margin-top:5px; display:flex; flex-wrap:wrap; gap:3px;">
+                    ${p.machines.map(m => `<span style="font-size:9px; background:#e2e8f0; padding:2px 5px; border-radius:4px; color:#475569;">⚙️ ${m}</span>`).join('')}
+                   </div>` : "";
+
+            const elementSummary = p.items.map(item => {
+                const doneForItem = db.archive.filter(a => a.info === p.name && a.type === 'PRODHIM' && a.content.startsWith(item.el)).length;
+                return `<div style="font-size:11px; color:#475569; display:flex; justify-content:space-between; border-bottom:1px dashed #eee; padding:2px 0;">
+                            <span>${item.el}:</span> <b>${doneForItem} / ${item.tg}</b>
+                        </div>`;
+            }).join('');
+
+            return `
+                <div class="card" style="border-left:8px solid ${statusColor}; background:${cardBg}; transition: all 0.5s ease;">
+                    <div style="display:flex; justify-content:space-between; align-items:start;">
+                        <div><b style="font-size:15px;">${p.name}</b>${machineTags}
+                            <div style="font-size:11px; margin-top:5px; color:#64748b;">
+    🚀 Nisja: 
+    <b>
+        ${
+            p.startDate 
+            ? new Date(p.startDate).toLocaleDateString('sq-AL')
+            : new Date(p.date || Date.now()).toLocaleDateString('sq-AL')
+        }
+    </b>
+
+    | 
+
+    📅 Afati: 
+    <b>
+        ${new Date(p.deadline).toLocaleDateString('sq-AL')}
+    </b>
+</div>
+
+                        </div>
+                        <span class="tag" style="background:${statusColor}; color:white;">${perc}%</span>
+                    </div>
+                    <div style="margin-top:10px; background:#f1f5f9; padding:8px; border-radius:6px;">${elementSummary}</div>
+                    <div style="background:#eee; height:10px; border-radius:5px; margin:15px 0; overflow:hidden;">
+                        <div style="background:${statusColor}; width:${perc}%; height:100%; transition: width 0.6s ease;"></div>
+                    </div>
+                    <div style="font-size:12px; display:flex; justify-content:space-between;">
+                        <button onclick="ndryshoAfatin(${i})" class="btn-light" style="font-size:10px; padding:4px 8px;">SHTYJ</button>
+                        <button onclick="mbyllMeStatus(${i})" class="btn-ok" style="background:${statusColor}; border:none; color:white; padding:5px 10px; border-radius:5px; cursor:pointer;">MBYLL</button>
+                    </div>
+                </div>`;
+        }).join('');
+    }
+
+    function ndryshoAfatin(i) {
+        const dataEre = prompt("Data e re (YYYY-MM-DD):", db.projs[i].deadline);
+        if (!dataEre) return;
+        const arsyeja = prompt("Arsyeja e shtyrjes (E detyrueshme):");
+        if (arsyeja && arsyeja.trim() !== "") {
+            db.projs[i].deadline = dataEre;
+            db.archive.push({ type: 'SHTYRJE', date: new Date().toISOString(), info: db.projs[i].name, content: `Shtyrë deri: ${dataEre} | Arsyeja: ${arsyeja}`, worker: 'Admin' });
+            save(); renderMonitor();
+        } else { alert("Duhet arsyeja!"); }
+    }
+
+    function mbyllMeStatus(i) {
+        const arsyeja = prompt("Arsyeja e mbylljes (E detyrueshme):");
+        if (arsyeja && arsyeja.trim() !== "") {
+            autoArchiveProject(i, arsyeja);
+        } else { alert("Duhet arsyeja!"); }
+    }
+
+    function autoArchiveProject(i, arsye) {
+        if (!db.projs[i]) return;
+        const p = db.projs[i];
+        db.archive.push({ type: 'MBYLLJE', date: new Date().toISOString(), info: p.name, content: `Mbyllur: ${arsye} | Realizimi: ${p.doneQty}/${p.totalQty}`, worker: 'Admin' });
+        db.projs.splice(i, 1);
+        save(); renderMonitor();
+    }
+
+    function saveNewProject() {
+        const n = document.getElementById('p_name').value;
+        const d = document.getElementById('p_dl_date').value;
+        const selectedMachines = Array.from(document.querySelectorAll('.mc-m:checked')).map(cb => cb.value);
+        if(!n || !d) return alert("Emri dhe Data!");
+        
+        let newItems = Array.from(document.querySelectorAll('#items-box > div'))
+            .map(r => ({ el: r.querySelector('.it_el').value, tg: parseInt(r.querySelector('.it_tg').value) || 0 }))
+            .filter(item => item.tg > 0);
+
+        if (newItems.length === 0) return alert("Sasia duhet 1 ose më shumë!");
+
+        let existingProj = db.projs.find(p => p.name.toLowerCase() === n.toLowerCase());
+        if (existingProj) {
+            newItems.forEach(newItem => {
+                let match = existingProj.items.find(ei => ei.el === newItem.el);
+                if (match) match.tg += newItem.tg; else existingProj.items.push(newItem);
+                existingProj.totalQty += newItem.tg;
+            });
+            existingProj.startDate = existingProj.startDate || document.getElementById('p_start_date').value;
+        } else {
+       db.projs.push({ 
+    name: n,
+    startDate: document.getElementById('p_start_date').value,
+    deadline: d,
+    items: newItems,
+    totalQty: newItems.reduce((s, it) => s + it.tg, 0),
+    doneQty: 0,
+    machines: selectedMachines
+});
+        }
+        save(); document.getElementById('items-box').innerHTML = ""; goTo('p1');
+    }
+        function addItemRow() {
+        const d = document.createElement('div'); 
+        d.style="display:flex; gap:5px; margin-bottom:5px;";
+        d.innerHTML = `<select class="it_el">${db.elements.map(e=>`<option>${e}</option>`).join('')}</select>
+                       <input type="number" class="it_tg" placeholder="Sasia">
+                       <select class="it_un">${db.units.map(u=>`<option>${u}</option>`).join('')}</select>`;
+        document.getElementById('items-box').appendChild(d);
+    }
+
+    function updateProdOptions() {
+        const i = document.getElementById('pr_sel').value;
+        if(db.projs[i]) document.getElementById('el_sel').innerHTML = db.projs[i].items.map(it => `<option>${it.el}</option>`).join('');
+    }
+
+    function logWork() {
+        const i = document.getElementById('pr_sel').value;
+        const bc = document.getElementById('prod_barcode').value;
+        const wk = document.getElementById('wk_in').value;
+        if(!bc || !wk) return alert("Plotësoni të dhënat!");
+        db.projs[i].doneQty += 1;
+        db.archive.push({ type:'PRODHIM', date:new Date().toISOString(), info:db.projs[i].name, content:`${document.getElementById('el_sel').value} | BK: ${bc}`, worker: wk });
+        save(); alert("Regjistruar!");
+    }
+
+    function renderArchive() {
+        const s = document.getElementById('f_search').value.toLowerCase();
+        const t = document.getElementById('f_type').value;
+        const start = document.getElementById('f_start').value;
+        const end = document.getElementById('f_end').value;
+
+        let fil = db.archive.filter(a => {
+            let d = new Date(a.date).toISOString().split('T')[0];
+            const matchSearch = a.info.toLowerCase().includes(s);
+            const matchType = t === "" || a.type === t;
+            const matchDate = (!start || d >= start) && (!end || d <= end);
+            return matchSearch && matchType && matchDate;
+        });
+
+        document.getElementById('st_prod').innerText = fil.filter(x => x.type === 'PRODHIM').length;
+        document.getElementById('st_mbyll').innerText = fil.filter(x => x.type === 'MBYLLJE').length;
+        document.getElementById('st_tot').innerText = fil.length;
+
+        document.getElementById('arc_body').innerHTML = fil.reverse().map((a, idx) => `
+            <tr>
+                <td>${new Date(a.date).toLocaleDateString('sq-AL')}</td>
+                <td><b>${a.info}</b></td>
+                <td>${a.worker || '-'}</td>
+                <td><small>${a.content}</small></td>
+                <td><span class="tag" style="background:${a.type==='MBYLLJE'?'#dcfce7':'#dbeafe'}">${a.type}</span></td>
+                <td class="no-print"><button class="btn-danger" onclick="deleteArc(${db.archive.indexOf(a)})">🗑️</button></td>
+            </tr>`).join('');
+    }
+
+    function clearFilters() {
+        document.getElementById('f_search').value = "";
+        document.getElementById('f_type').value = "";
+        document.getElementById('f_start').value = "";
+        document.getElementById('f_end').value = "";
+        renderArchive();
+    }
+    function printProfessionalPDF() {
+    const rows = document.querySelectorAll("#arc_body tr");
+    if(rows.length === 0) return alert("Nuk ka të dhëna!");
+
+    let tableRows = "";
+    rows.forEach(r => {
+        const c = r.querySelectorAll("td");
+        if(c.length < 5) return;
+        
+        const status = c[4].innerText;
+        let color = "background:#dbeafe; color:#1e40af;"; // Blu
+        if(status === 'MBYLLJE') color = "background:#dcfce7; color:#166534;"; // Jeshile
+        if(status === 'MATJE') color = "background:#fef3c7; color:#92400e;"; // Portokalli
+
+        tableRows += `
+            <tr>
+                <td>${c[0].innerText}</td>
+                <td><b>${c[1].innerText}</b></td>
+                <td>${c[2].innerText}</td>
+                <td>${c[3].innerText}</td>
+                <td><span class="status-badge" style="${color}">${status}</span></td>
+            </tr>`;
+    });
+
+    const div = document.createElement("div");
+    div.id = "print-area";
+    div.innerHTML = `
+        <div class="pdf-header">
+            <div>
+                <h1 style="margin:0;">ALUFORMA <span style="color:#2563eb;">PLAST</span></h1>
+                <p style="margin:5px 0 0 0; font-size:12px;">Engineering & Production Management</p>
+            </div>
+            <div style="text-align:right;">
+                <h2 style="margin:0;">RAPORT PRODHIMI</h2>
+                <p style="margin:5px 0 0 0;">Data: ${new Date().toLocaleDateString('sq-AL')}</p>
+            </div>
+        </div>
+        <div class="pdf-body">
+            <table class="pdf-table">
+                <thead>
+                    <tr>
+                        <th>DATA</th>
+                        <th>KLIENTI</th>
+                        <th>PUNONJËSI</th>
+                        <th>PËRSHKRIMI</th>
+                        <th>STATUSI</th>
+                    </tr>
+                </thead>
+                <tbody>${tableRows}</tbody>
+            </table>
+            <div style="margin-top:50px; border-top:1px solid #eee; padding-top:20px; display:flex; justify-content:space-between;">
+                <div>Gjeneruar nga: <b>Ing. Pëllumb Alla</b></div>
+                <div style="font-style:italic;">Aluforma Plast ERP v21</div>
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(div);
+    window.print();
+    setTimeout(() => div.remove(), 1000);
+}
+
+
+    function filterByTime(period) {
+        const now = new Date();
+        let start = new Date();
+        if(period === 'today') start = now;
+        if(period === 'week') start.setDate(now.getDate() - 7);
+        if(period === 'month') start.setMonth(now.getMonth() - 1);
+        if(period === 'year') start = new Date('2026-01-01');
+        document.getElementById('f_start').value = start.toISOString().split('T')[0];
+        document.getElementById('f_end').value = now.toISOString().split('T')[0];
+        renderArchive();
+    }
+
+    function deleteArc(i) {
+
+    const kodi = prompt("Vendos kodin e fshirjes:");
+
+    if(kodi === null) return;
+
+    if(kodi !== "A2025"){
+        alert("❌ Kodi i gabuar!");
+        return;
+    }
+
+    if(confirm("Jeni i sigurt që doni ta fshini këtë rekord?")){
+
+        db.archive.splice(i,1);
+
+        save();
+
+        renderArchive();
+
+        alert("✅ Rekordi u fshi me sukses.");
+    }
+}
+    function renderRes() {
+        ['machines', 'elements', 'units'].forEach(k => {
+            document.getElementById('list_'+k).innerHTML = db[k].map((x, i) => `<span class="tag">${x} <b onclick="db['${k}'].splice(${i},1);save();renderRes();" style="color:red;cursor:pointer;margin-left:5px;">✕</b></span>`).join('');
+        });
+    }
+    function addR(k, id) { let v = document.getElementById(id).value; if(v){ db[k].push(v); save(); renderRes(); document.getElementById(id).value=''; } }
+
+    setInterval(() => { if(document.getElementById('live-clock')) document.getElementById('live-clock').innerText = new Date().toLocaleString('sq-AL'); }, 1000);
+    window.onload = () => { syncResources(); goTo('p1'); };
+    
+</script>
+
+</body>
+</html>

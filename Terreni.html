@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="sq">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aluforma Plast - Sistemi Inxhinierik</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
+    <style>
+        :root { --main: #1a2a6c; --accent: #b21f1f; --gold: #fdbb2d; --bg: #f4f7f6; --success: #27ae60; --info: #3498db; --alarm: #ff4b2b; }
+        body { font-family: 'Segoe UI', sans-serif; margin: 0; background: var(--bg); color: #333; padding-bottom: 50px; }
+        header { background: linear-gradient(135deg, var(--main), var(--accent)); color: white; padding: 20px; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
+        nav { display: flex; background: white; border-bottom: 3px solid var(--main); position: sticky; top: 0; z-index: 1000; overflow-x: auto; }
+        nav button { flex: 1; padding: 15px; border: none; background: none; font-weight: bold; color: var(--main); cursor: pointer; min-width: 90px; }
+        nav button.active { background: var(--main); color: white; }
+        .container { padding: 15px; max-width: 1000px; margin: auto; }
+        .page { display: none; background: white; padding: 25px; border-radius: 15px; box-shadow: 0 5px 20px rgba(0,0,0,0.08); margin-top: 15px; }
+        .active-page { display: block; }
+        h3 { color: var(--main); border-left: 5px solid var(--gold); padding-left: 10px; margin-top: 20px; display: flex; justify-content: space-between; align-items: center; }
+        input, select { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
+        .btn { padding: 12px 18px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.2s; }
+        .btn-save { background: var(--main); color: white; width: 100%; font-size: 18px; margin-top: 15px; }
+        .filter-group { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
+        .card { background: #fff; border: 1px solid #ddd; border-radius: 12px; padding: 15px; margin-bottom: 15px; position: relative; border-left: 8px solid var(--main); }
+        .alarm-active { border: 2px solid var(--alarm) !important; background: #fff5f5 !important; animation: pulse-red 2s infinite; }
+        @keyframes pulse-red { 0% { box-shadow: 0 0 0px var(--alarm); } 50% { box-shadow: 0 0 10px var(--alarm); } 100% { box-shadow: 0 0 0px var(--alarm); } }
+        .btn-delete { position: absolute; top: 10px; right: 10px; color: var(--accent); background: white; border: 1px solid #eee; border-radius: 50%; width: 30px; height: 30px; cursor: pointer; }
+        .kts-row { display: flex; align-items: center; justify-content: space-between; background: #f8f9fa; padding: 12px; border-radius: 10px; margin-bottom: 5px; border: 1px solid #eee; }
+        .photo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 10px; margin-top: 10px; }
+        .photo-preview { width: 100%; height: 100px; object-fit: cover; border-radius: 8px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th { background: #f8f9fa; padding: 12px; text-align: left; font-size: 14px; }
+        td { padding: 8px; border-bottom: 1px solid #eee; }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1 style="margin:0">ALUFORMA PLAST</h1>
+    <div style="font-weight: bold; margin-top: 5px; color: var(--gold);">Ing. Pëllumb Alla</div>
+</header>
+
+<nav>
+    <button onclick="shfaqFaqen('puna-ditore', this)" class="active">📝 Raporti</button>
+    <button onclick="shfaqFaqen('magazina', this)">📦 Magazina</button>
+    <button onclick="shfaqFaqen('timeline', this)">📊 Timeline</button>
+    <button onclick="shfaqFaqen('historiku', this)">📚 Arkiva</button>
+    <button onclick="shfaqFaqen('backup', this)">💾</button>
+</nav>
+
+<div class="container">
+    <div id="puna-ditore" class="page active-page">
+        <h3>📍 Detajet e Objektit</h3>
+        <input type="text" id="objektiPuna" placeholder="Emri i Projektit / Objektit...">
+        <input type="number" id="progresiPuna" placeholder="Shto progresin për sot (%)">
+        <h3>👥 Punonjësit <button class="btn" style="background:var(--success); color:white; padding: 5px 12px; float:right" onclick="shtoInput('listaPunonjes')">+</button></h3>
+        <div id="listaPunonjes"><input type="text" class="w-in" placeholder="Emri i punonjësit..."></div>
+        <h3>🛠️ Punimet e Kryera <button class="btn" style="background:var(--success); color:white; padding: 5px 12px; float:right" onclick="shtoInput('listaPunime')">+</button></h3>
+        <div id="listaPunime"><input type="text" class="p-in" placeholder="Përshkrimi i punimit..."></div>
+        <h3>🛡️ Siguria (KTS) <button class="btn" style="background:var(--main); color:white; font-size: 12px;" onclick="shtoKTS()">+</button></h3>
+        <div id="kts-grid"></div>
+        <h3>📸 Foto nga Kantieri</h3>
+        <input type="file" id="fotoInp" accept="image/*" multiple onchange="previewFotos()">
+        <div id="photoPrev" class="photo-grid"></div>
+        <button class="btn btn-save" onclick="ruajRaportin()">RUAJ RAPORTIN DITOR</button>
+    </div>
+
+    <div id="magazina" class="page">
+        <h3>📦 Menaxhimi i Materialeve</h3>
+        <input list="list-obj" id="objMag" placeholder="Zgjidh Objektin...">
+        <datalist id="list-obj"></datalist>
+        <table id="tblMag">
+            <thead><tr><th>Materiali</th><th>Hyrje</th><th>Dalje</th></tr></thead>
+            <tbody id="bodyMag">
+                <tr><td><input type="text" class="m-em"></td><td><input type="number" class="m-h" value="0"></td><td><input type="number" class="m-d" value="0"></td></tr>
+            </tbody>
+        </table>
+        <button class="btn" style="background:var(--success); color:white; width:100%; margin-top:10px;" onclick="shtoRreshtMag()">+ Shto Rresht</button>
+        <button class="btn btn-save" onclick="ruajMag()">RUAJ LËVIZJET</button>
+        <hr>
+        <select id="selObj" onchange="shfaqStokun(this.value)"></select>
+        <div id="rezStoku"></div>
+    </div>
+
+    <div id="timeline" class="page">
+        <h3>📊 Timeline & Filtra</h3>
+        <div class="filter-group">
+            <select id="f-muaji" onchange="refreshTimeline()">
+                <option value="gjitha">Gjithë Muajt</option>
+                <option value="0">Janar</option><option value="1">Shkurt</option>
+                <option value="2">Mars</option><option value="3" selected>Prill</option>
+                <option value="4">Maj</option><option value="5">Qershor</option>
+                <option value="6">Korrik</option><option value="7">Gusht</option>
+                <option value="8">Shtator</option><option value="9">Tetor</option>
+                <option value="10">Nëntor</option><option value="11">Dhjetor</option>
+            </select>
+            <select id="f-viti" onchange="refreshTimeline()">
+                <option value="gjitha">Gjithë Vitet</option>
+                <option value="2024">2024</option><option value="2025">2025</option>
+                <option value="2026" selected>2026</option><option value="2027">2027</option>
+            </select>
+        </div>
+        <div id="timelineCont"></div>
+    </div>
+
+    <div id="historiku" class="page">
+        <h3>📚 Arkiva</h3>
+        <div id="arkivaCont"></div>
+    </div>
+
+    <div id="backup" class="page">
+        <h3>💾 Backup</h3>
+        <button class="btn btn-save" onclick="exportData()">DOWNLOAD BACKUP</button>
+        <input type="file" onchange="importData(event)" style="margin-top:20px;">
+    </div>
+</div>
+
+<div id="myModal" style="display:none; position:fixed; z-index:2000; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.85);">
+    <div style="background:white; margin:10% auto; padding:20px; width:85%; border-radius:12px;">
+        <div id="modalData"></div>
+        <button class="btn btn-save" onclick="document.getElementById('myModal').style.display='none'">MBYLL</button>
+    </div>
+</div>
+
+<script>
+    let db = {
+        raporte: JSON.parse(localStorage.getItem('alu_raporte')) || [],
+        magazina: JSON.parse(localStorage.getItem('alu_magazina')) || [],
+        projekte: JSON.parse(localStorage.getItem('alu_projekte')) || {},
+        kts: JSON.parse(localStorage.getItem('alu_kts')) || ["Kaska", "Jeleku", "Këpucët", "Rrip Sigurimi"]
+    };
+    let raportiFotos = [];
+
+    function save() {
+        localStorage.setItem('alu_raporte', JSON.stringify(db.raporte));
+        localStorage.setItem('alu_magazina', JSON.stringify(db.magazina));
+        localStorage.setItem('alu_projekte', JSON.stringify(db.projekte));
+        localStorage.setItem('alu_kts', JSON.stringify(db.kts));
+    }
+
+    function shfaqFaqen(id, btn) {
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active-page'));
+        document.getElementById(id).classList.add('active-page');
+        document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+        if(btn) btn.classList.add('active');
+        if(id === 'historiku') refreshArkiva();
+        if(id === 'timeline') refreshTimeline();
+        if(id === 'magazina') refreshListaObj();
+    }
+
+    function shtoInput(id) {
+        let inp = document.createElement('input');
+        inp.type = 'text'; inp.className = (id === 'listaPunonjes') ? 'w-in' : 'p-in';
+        document.getElementById(id).appendChild(inp);
+    }
+
+    function refreshKTS() {
+        document.getElementById('kts-grid').innerHTML = db.kts.map((k, i) => `
+            <div class="kts-row">
+                <label style="display:flex;align-items:center;gap:10px;"><input type="checkbox" class="kts-chk" data-name="${k}"> ${k}</label>
+                <button style="color:red;border:none;background:none;font-size:18px;" onclick="fshijKTS(${i})">✕</button>
+            </div>`).join('');
+    }
+    function shtoKTS() { let n = prompt("Pajisja:"); if(n) { db.kts.push(n); save(); refreshKTS(); } }
+    function fshijKTS(i) { db.kts.splice(i, 1); save(); refreshKTS(); }
+
+    function previewFotos() {
+        const files = document.getElementById('fotoInp').files;
+        const prev = document.getElementById('photoPrev');
+        prev.innerHTML = ""; raportiFotos = [];
+        Array.from(files).forEach(file => {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                raportiFotos.push(e.target.result);
+                prev.innerHTML += `<img src="${e.target.result}" class="photo-preview">`;
+            };
+            reader.readAsDataURL(file);
+        });
+    }
+
+    function ruajRaportin() {
+        let obj = document.getElementById('objektiPuna').value;
+        if(!obj) return alert("Shënoni emrin e objektit!");
+        let progVlera = Number(document.getElementById('progresiPuna').value) || 0;
+        let ktsChecked = [...document.querySelectorAll('.kts-chk:checked')].map(c => c.getAttribute('data-name'));
+        
+        let d = new Date();
+        let r = {
+            id: Date.now(),
+            nr: "ALB-" + Math.floor(Math.random()*9000+1000),
+            obj: obj,
+            data: d.toLocaleString('sq-AL'),
+            timestamp: d.getTime(),
+            prog: progVlera,
+            pun: [...document.querySelectorAll('.w-in')].map(i => i.value).filter(v => v),
+            pune: [...document.querySelectorAll('.p-in')].map(i => i.value).filter(v => v),
+            kts_perdorur: ktsChecked,
+            fotos: raportiFotos
+        };
+        db.raporte.push(r);
+        let totalProg = db.raporte.filter(rap => rap.obj === obj).reduce((sum, rap) => sum + Number(rap.prog), 0);
+        db.projekte[obj] = { prog: Math.min(totalProg, 100), afati: db.projekte[obj]?.afati || "" };
+        save(); alert("U ruajt!"); location.reload();
+    }
+
+    function refreshTimeline() {
+        let cont = document.getElementById('timelineCont');
+        cont.innerHTML = "";
+        let filterM = document.getElementById('f-muaji').value;
+        let filterV = document.getElementById('f-viti').value;
+        let sot = new Date();
+
+        for(let obj in db.projekte) {
+            let raporteObjekti = db.raporte.filter(r => r.obj === obj);
+            let kalonFiltrin = raporteObjekti.some(r => {
+                let rd = new Date(r.timestamp);
+                let mMatch = (filterM === "gjitha" || rd.getMonth() == filterM);
+                let vMatch = (filterV === "gjitha" || rd.getFullYear() == filterV);
+                return mMatch && vMatch;
+            });
+
+            if(!kalonFiltrin && filterM !== "gjitha") continue;
+
+            let p = db.projekte[obj];
+            let alarmClass = "";
+            if(p.afati) {
+                let afatiDate = new Date(p.afati);
+                let diff = (afatiDate - sot) / (1000 * 60 * 60 * 24);
+                if(diff <= 2) alarmClass = "alarm-active";
+            }
+
+            cont.innerHTML += `
+                <div class="card ${alarmClass}">
+                    <button class="btn-delete" onclick="fshijProjektin('${obj}')">✕</button>
+                    <h4>${obj}</h4>
+                    <p>Progresi: <b>${p.prog}%</b></p>
+                    <div style="background:#eee;height:12px;border-radius:6px;overflow:hidden;"><div style="background:var(--success);width:${p.prog}%;height:100%;"></div></div>
+                    <div style="margin-top:10px;">
+                        <label style="font-size:12px; font-weight:bold;">📅 Afati Përfundimit:</label>
+                        <input type="date" value="${p.afati}" onchange="ruajAfatin('${obj}', this.value)">
+                    </div>
+                </div>`;
+        }
+    }
+
+    function refreshArkiva() {
+        document.getElementById('arkivaCont').innerHTML = db.raporte.slice().reverse().map(r => `
+            <div class="card" style="border-left:6px solid var(--main);">
+                <span style="float:right; font-weight:bold; color:var(--info); font-size:12px;">Kodi: ${r.nr}</span>
+                <strong>${r.obj}</strong><br><small>Koha: ${r.data}</small>
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin-top:10px;">
+                    <button class="btn" style="background:var(--info); color:white;" onclick='shiko(${JSON.stringify(r)})'>SHIKO</button>
+                    <button class="btn" style="background:var(--success); color:white;" onclick='gjeneroPDF(${JSON.stringify(r)})'>PDF</button>
+                    <button class="btn" style="background:var(--gold); color:white;" onclick='ndrysho(${JSON.stringify(r)})'>NDRYSHO</button>
+                    <button class="btn" style="background:var(--accent); color:white;" onclick="fshijR(${r.id})">FSHIJ</button>
+                </div>
+            </div>`).join('');
+    }
+
+    function gjeneroPDF(r) {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        doc.setFillColor(26, 42, 108); doc.rect(0, 0, 210, 40, 'F');
+        doc.setTextColor(255, 255, 255); doc.setFontSize(22); doc.text("ALUFORMA PLAST", 15, 25);
+        
+        let bodyT = [['Objekti', r.obj], ['Punonjësit', r.pun.join(', ')], ['Punimet', r.pune.join('\n')]];
+        if(r.kts_perdorur?.length > 0) bodyT.push(['Siguria (KTS)', r.kts_perdorur.join(', ')]);
+
+        doc.autoTable({ startY: 45, head: [['Kategoria', 'Detajet']], body: bodyT, theme: 'striped', headStyles: { fillColor: [26, 42, 108] } });
+        
+        // RIKTHIMI I EMRIT NE FUND DJATHTAS
+        let finalY = doc.lastAutoTable.finalY + 30;
+        doc.setFontSize(11); doc.setFont("helvetica", "bold");
+        doc.setTextColor(0,0,0);
+        doc.text("Ing. Pëllumb Alla", 150, finalY);
+        
+        doc.save(`Raport_${r.obj}.pdf`);
+    }
+
+    function shiko(r) {
+        let fotot = r.fotos ? r.fotos.map(f => `<img src="${f}" style="width:100%; border-radius:10px; margin-bottom:10px;">`).join('') : 'Pa foto.';
+        document.getElementById('modalData').innerHTML = `<h3>${r.obj} (${r.nr})</h3><p>${r.data}</p><div style="max-height:450px; overflow-y:auto;">${fotot}</div>`;
+        document.getElementById('myModal').style.display = 'block';
+    }
+
+    function ruajAfatin(obj, data) { db.projekte[obj].afati = data; save(); refreshTimeline(); }
+    function fshijProjektin(obj) { if(confirm("Fshij " + obj + "?")) { delete db.projekte[obj]; save(); refreshTimeline(); } }
+    function shtoRreshtMag() {
+        let tr = document.getElementById('bodyMag').insertRow();
+        tr.innerHTML = `<td><input type="text" class="m-em"></td><td><input type="number" class="m-h" value="0"></td><td><input type="number" class="m-d" value="0"></td>`;
+    }
+    function ruajMag() {
+        let obj = document.getElementById('objMag').value; if(!obj) return alert("Zgjidh objektin!");
+        document.querySelectorAll('#bodyMag tr').forEach(tr => {
+            let em = tr.querySelector('.m-em').value;
+            let h = parseFloat(tr.querySelector('.m-h').value) || 0;
+            let d = parseFloat(tr.querySelector('.m-d').value) || 0;
+            if(em) db.magazina.push({ obj: obj, mat: em, h: h, d: d, data: new Date().toLocaleDateString() });
+        });
+        save(); alert("U ruajt!"); location.reload();
+    }
+    function refreshListaObj() {
+        let objs = [...new Set(db.magazina.map(m => m.obj))];
+        document.getElementById('list-obj').innerHTML = objs.map(o => `<option value="${o}">`).join('');
+        document.getElementById('selObj').innerHTML = '<option value="">-- Stoku --</option>' + objs.map(o => `<option value="${o}">${o}</option>`).join('');
+    }
+    function shfaqStokun(o) {
+        let st = {}; db.magazina.filter(m => m.obj === o).forEach(m => { st[m.mat] = (st[m.mat] || 0) + (m.h - m.d); });
+        let res = "<table><tr><th>Materiali</th><th>Sasia</th></tr>";
+        for(let m in st) res += `<tr><td>${m}</td><td><b>${st[m]}</b></td></tr>`;
+        document.getElementById('rezStoku').innerHTML = res + "</table>";
+    }
+    function fshijR(id) { if(prompt("Kodi:") === "A2025") { db.raporte = db.raporte.filter(x => x.id !== id); save(); refreshArkiva(); } }
+    function exportData() { let b = new Blob([JSON.stringify(db)], {type:'application/json'}); let a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = 'Aluforma_Backup.json'; a.click(); }
+    function importData(e) { let fr = new FileReader(); fr.onload = (x) => { db = JSON.parse(x.target.result); save(); location.reload(); }; fr.readAsText(e.target.files[0]); }
+    
+    window.onload = () => { refreshKTS(); refreshTimeline(); };
+</script>
+</body>
+</html>
